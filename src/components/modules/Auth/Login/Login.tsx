@@ -10,11 +10,18 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { loginUser } from "@/services/loginUsers";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 
-const LoginForm = ({ redirect }: { redirect: string }) => {
+const LoginForm = ({ redirect }: { redirect?: string }) => {
   const [state, formAction, isPending] = useActionState(loginUser, null);
-  // const router = useRouter();
+
+  useEffect(() => {
+    if (state && !state.success && state.message) {
+      toast.error(state.message);
+    }
+  }, [state]);
+
   const getFieldError = (fieldName: string) => {
     if (state && state.errors) {
       const error = state.errors.find((err: any) => err.field === fieldName);
@@ -23,14 +30,11 @@ const LoginForm = ({ redirect }: { redirect: string }) => {
       return null;
     }
   };
-  // if (state?.success) {
-  //   redirect("/"); // or change to your success route
-  //   // console.log("Login successful");
-  // }
+
   return (
     <form action={formAction}>
+      {redirect && <input type="hidden" name="redirect" value={redirect} />}
       <FieldGroup>
-        {redirect && <input type="hidden" name="redirect" value={redirect} />}
         <div className="grid grid-cols-1 gap-4">
           {/* Email */}
           <Field>

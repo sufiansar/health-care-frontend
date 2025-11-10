@@ -84,7 +84,7 @@ export default function Footer() {
 
       {/* Bottom Line */}
       <div className="border-t border-border text-center py-4 text-sm text-muted-foreground">
-        © {year ? `${year} ` : ""}PH Health Care. All rights reserved.
+        © 2025 PH Health Care. All rights reserved.
       </div>
     </footer>
   );
