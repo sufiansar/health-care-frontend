@@ -1,4 +1,3 @@
-import Link from "next/link";
 import LoginForm from "@/components/modules/Auth/Login/Login";
 
 const LoginPage = async ({
@@ -8,18 +7,15 @@ const LoginPage = async ({
 }) => {
   const params = (await searchParams) || {};
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
-      <div className="w-full max-w-sm flex flex-col items-center gap-8">
-        <Link
-          href="/"
-          className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold shadow transition hover:opacity-90"
-        >
-          Logo
-        </Link>
-
-        <div className="w-full rounded-xl bg-background p-6 shadow-md border border-border">
-          <LoginForm redirect={params.redirect ?? ""} />
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md space-y-6 rounded-lg border p-8 shadow-lg">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-bold">Welcome Back</h1>
+          <p className="text-gray-500">
+            Enter your credentials to access your account
+          </p>
         </div>
+        <LoginForm redirect={params.redirect} />
       </div>
     </div>
   );

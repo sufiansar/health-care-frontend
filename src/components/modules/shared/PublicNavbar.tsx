@@ -1,10 +1,7 @@
-"use client";
-
+import { getCookie } from "@/services/tokenHandlers";
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, Stethoscope, LogIn } from "lucide-react";
+import LogOutButton from "./LogOutButton";
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/modeToggle";
 import {
   Sheet,
   SheetContent,
@@ -12,97 +9,95 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 
-export default function PublicNavbar() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const menuItems = [
-    { name: "Home", href: "/" },
-    { name: "Doctors", href: "/doctors" },
-    { name: "Services", href: "/services" },
-    { name: "Reviews", href: "/reviews" },
+const PublicNavbar = async () => {
+  const navItems = [
+    { href: "#", label: "Consultation" },
+    { href: "#", label: "Health Plans" },
+    { href: "#", label: "Medicine" },
+    { href: "#", label: "Diagnostics" },
+    { href: "#", label: "NGOs" },
   ];
 
+  const accessToken = await getCookie("accessToken");
+
   return (
-    <nav className="w-full fixed top-0 left-0 z-50 bg-background/70 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto flex justify-between items-center px-4 py-3">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur-md supports-backdrop-filter:bg-background/70">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-primary font-semibold text-lg"
-        >
-          <Stethoscope className="w-6 h-6 text-primary" />
-          <span>PH Health Care</span>
+        <Link href="/" className="flex items-center space-x-2">
+          <span className="text-2xl font-bold text-primary tracking-tight hover:text-primary/80 transition-colors">
+            PH Doc
+          </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex gap-6">
-          {menuItems.map((item) => (
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          {navItems.map((link) => (
             <Link
-              key={item.name}
-              href={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              key={link.label}
+              href={link.href}
+              className="relative text-foreground/80 hover:text-primary transition-colors duration-200 after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
             >
-              {item.name}
+              {link.label}
             </Link>
           ))}
-        </div>
+        </nav>
 
-        {/* Desktop Login Button */}
-        <div className="hidden md:flex items-center space-x-4">
-          <ModeToggle />
-          <Button asChild variant="default">
+        {/* Desktop Buttons */}
+        <div className="hidden md:flex items-center space-x-2">
+          {accessToken ? (
+            <LogOutButton />
+          ) : (
             <Link href="/login">
-              <LogIn className="mr-2 h-4 w-4" /> Login
+              <Button className="font-medium">Login</Button>
             </Link>
-          </Button>
+          )}
         </div>
 
-        {/* Mobile Menu Sheet */}
+        {/* Mobile Menu */}
         <div className="md:hidden">
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="w-6 h-6" />
-                <span className="sr-only">Toggle menu</span>
+              <Button variant="outline" size="icon" className="rounded-xl">
+                <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <SheetHeader className="mb-8">
-                <SheetTitle className="flex items-center gap-2 text-xl">
-                  <Stethoscope className="w-6 h-6 text-primary" />
-                  PH Health Care
+            <SheetContent side="right" className="w-[80%] sm:w-[350px] p-6">
+              <SheetHeader>
+                <SheetTitle className="text-xl font-semibold text-primary">
+                  PH Doc Menu
                 </SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-8 px-2">
-                <nav className="flex flex-col gap-6">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className="text-lg font-medium text-foreground hover:text-primary transition-colors py-1"
-                    >
-                      {item.name}
+
+              <nav className="mt-6 flex flex-col space-y-4">
+                {navItems.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="text-lg font-medium text-foreground/80 hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+
+                <div className="pt-6 border-t mt-4">
+                  {accessToken ? (
+                    <LogOutButton />
+                  ) : (
+                    <Link href="/login">
+                      <Button className="w-full font-medium">Login</Button>
                     </Link>
-                  ))}
-                </nav>
-                <div className="pt-6 border-t border-border space-y-6">
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-base font-medium">Theme</span>
-                    <ModeToggle />
-                  </div>
-                  <Button asChild className="w-full h-11">
-                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                      <LogIn className="mr-2 h-5 w-5" /> Login
-                    </Link>
-                  </Button>
+                  )}
                 </div>
-              </div>
+              </nav>
             </SheetContent>
           </Sheet>
         </div>
       </div>
-    </nav>
+    </header>
   );
-}
+};
+
+export default PublicNavbar;
