@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthProviders from "@/Providers/AuthProviders";
 import { Toaster } from "@/components/ui/sonner";
+import LogOutSuccessToast from "@/components/modules/shared/LogOutSuccessToast";
+import LoginSuccessToast from "@/components/modules/shared/LoginSuccessToast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,13 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // 👇 Add suppressHydrationWarning to prevent HTML mismatch warnings
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        {/* 👇 Wrap the entire app inside ThemeProvider */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -41,6 +41,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProviders>{children}</AuthProviders>
+          <LoginSuccessToast />
+          <LogOutSuccessToast />
           <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>

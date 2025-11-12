@@ -5,5 +5,5 @@ export const logOutUser = async () => {
   await deleteCookie("accessToken");
   await deleteCookie("refreshToken");
 
-  redirect("/login");
+  redirect("/login?loggedOut=true");
 };
