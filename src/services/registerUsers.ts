@@ -3,6 +3,8 @@
 
 import z from "zod";
 import { loginUser } from "./loginUsers";
+import { zodValidator } from "@/lib/zodValidator";
+import { serverFetchClient } from "@/lib/server-fatch";
 
 const registerValidationZodSchema = z
   .object({
@@ -41,43 +43,37 @@ export const registerPatient = async (
       confirmPassword: formData.get("confirmPassword"),
     };
 
-    const validatedFields =
-      registerValidationZodSchema.safeParse(validationData);
-
-    console.log(validatedFields, "val");
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        errors: validatedFields.error.issues.map((issue) => {
-          return {
-            field: issue.path[0],
-            message: issue.message,
-          };
-        }),
-      };
+    if (
+      zodValidator(validationData, registerValidationZodSchema).success ===
+      false
+    ) {
+      return zodValidator(validationData, registerValidationZodSchema);
     }
 
+    const validatedData: any = zodValidator(
+      validationData,
+      registerValidationZodSchema
+    ).data;
+
     const registerData = {
-      password: formData.get("password"),
+      password: validatedData.password,
       patient: {
-        name: formData.get("name"),
-        address: formData.get("address"),
-        email: formData.get("email"),
+        name: validatedData.name,
+        address: validatedData.address,
+        email: validatedData.email,
       },
     };
 
     const newFormData = new FormData();
 
     newFormData.append("data", JSON.stringify(registerData));
+    if (formData.get("file")) {
+      newFormData.append("file", formData.get("file") as Blob);
+    }
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API}/user/patient-create`,
-      {
-        method: "POST",
-        body: newFormData,
-      }
-    );
+    const res = await serverFetchClient.post(`/auth/register-patient`, {
+      body: newFormData,
+    });
 
     const result = await res.json();
 

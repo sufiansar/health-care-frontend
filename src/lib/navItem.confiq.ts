@@ -21,6 +21,12 @@ export const commonNavItems = (role: UserRole): NavSection[] => {
           roles: ["ADMIN", "DOCTOR", "PATIENT"],
         },
         {
+          title: "Home Page",
+          href: "/",
+          icon: "Home",
+          roles: ["ADMIN", "DOCTOR", "PATIENT"],
+        },
+        {
           title: "Change Password",
           href: "/change-password",
           icon: "LockClosed",
