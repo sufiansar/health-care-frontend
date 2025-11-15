@@ -10,6 +10,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { getNavItemsByRole } from "@/lib/navItem.confiq";
+import { getUserInfo } from "@/services/getUserInfo";
 
 const PublicNavbar = async () => {
   const navItems = [
@@ -19,6 +21,15 @@ const PublicNavbar = async () => {
     { href: "#", label: "Diagnostics" },
     { href: "#", label: "NGOs" },
   ];
+
+  const userInfo = await getUserInfo();
+
+  if (userInfo?.role) {
+    const dashBoardItems = getNavItemsByRole(userInfo.role);
+    if (dashBoardItems.length > 0) {
+      navItems.push({ href: "/dashboard", label: "Dashboard" });
+    }
+  }
 
   const accessToken = await getCookie("accessToken");
 

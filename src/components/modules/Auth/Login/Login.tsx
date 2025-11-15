@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { loginUser } from "@/services/loginUsers";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
+import InputFieldError from "../../shared/InputFieldError";
 
 const LoginForm = ({ redirect }: { redirect?: string }) => {
   const [state, formAction, isPending] = useActionState(loginUser, null);
@@ -47,11 +48,7 @@ const LoginForm = ({ redirect }: { redirect?: string }) => {
               //   required
             />
 
-            {getFieldError("email") && (
-              <FieldDescription className="text-red-600">
-                {getFieldError("email")}
-              </FieldDescription>
-            )}
+            <InputFieldError fieldName="email" state={state} />
           </Field>
 
           {/* Password */}
@@ -64,11 +61,7 @@ const LoginForm = ({ redirect }: { redirect?: string }) => {
               placeholder="Enter your password"
               //   required
             />
-            {getFieldError("password") && (
-              <FieldDescription className="text-red-600">
-                {getFieldError("password")}
-              </FieldDescription>
-            )}
+            <InputFieldError fieldName="password" state={state} />
           </Field>
         </div>
         <FieldGroup className="mt-4">

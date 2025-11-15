@@ -11,6 +11,8 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import z from "zod";
 import { setCookie } from "./tokenHandlers";
+import { zodValidator } from "@/lib/zodValidator";
+import { serverFetchClient } from "@/lib/server-fatch";
 
 const loginValidationZodSchema = z.object({
   email: z.email({
@@ -39,23 +41,16 @@ export const loginUser = async (
       password: formData.get("password"),
     };
 
-    const validatedFields = loginValidationZodSchema.safeParse(loginData);
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        errors: validatedFields.error.issues.map((issue) => {
-          return {
-            field: issue.path[0],
-            message: issue.message,
-          };
-        }),
-      };
+    if (zodValidator(loginData, loginValidationZodSchema).success === false) {
+      return zodValidator(loginData, loginValidationZodSchema);
     }
+    const validatedData = zodValidator(
+      loginData,
+      loginValidationZodSchema
+    ).data;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/auth/login`, {
-      method: "POST",
-      body: JSON.stringify(loginData),
+    const res = await serverFetchClient.post(`/auth/login`, {
+      body: JSON.stringify(validatedData),
       headers: {
         "Content-Type": "application/json",
       },
