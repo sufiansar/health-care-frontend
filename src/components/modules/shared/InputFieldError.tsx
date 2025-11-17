@@ -1,23 +1,21 @@
 import { FieldDescription } from "@/components/ui/field";
-import {
-  getInpurtFieldError,
-  IInputFieldError,
-} from "@/lib/getInputFieldError";
+import { getInputFieldError, IInputErrorState } from "@/lib/getInputFieldError";
 
-type Props = {
-  fieldName: string;
-  state: IInputFieldError;
-};
+interface InputFieldErrorProps {
+  field: string;
+  state: IInputErrorState;
+}
 
-const InputFieldError = ({ fieldName, state }: Props) => {
-  const error = getInpurtFieldError(fieldName, state);
-  if (!error) return null;
+const InputFieldError = ({ field, state }: InputFieldErrorProps) => {
+  if (getInputFieldError(field, state)) {
+    return (
+      <FieldDescription className="text-red-600">
+        {getInputFieldError(field, state)}
+      </FieldDescription>
+    );
+  }
 
-  return (
-    <FieldDescription className="text-red-600">
-      {error}
-    </FieldDescription>
-  );
+  return null;
 };
 
 export default InputFieldError;

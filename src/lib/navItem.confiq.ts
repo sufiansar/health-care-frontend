@@ -39,36 +39,47 @@ export const commonNavItems = (role: UserRole): NavSection[] => {
 
 export const adminNavItems: NavSection[] = [
   {
-    title: "Management",
+    title: "User Management",
     items: [
       {
         title: "Admins",
-        href: "/admins/dashboard/admins-management",
-        icon: "Users",
+        href: "/admin/dashboard/admins-management",
+        icon: "Shield",
         roles: ["ADMIN"],
       },
       {
         title: "Doctors",
-        href: "/admins/dashboard/doctors-management",
+        href: "/admin/dashboard/doctors-management",
         icon: "Stethoscope",
         roles: ["ADMIN"],
       },
       {
+        title: "Patients",
+        href: "/admin/dashboard/patients-management",
+        icon: "Users",
+        roles: ["ADMIN"],
+      },
+    ],
+  },
+  {
+    title: "Hospital Management",
+    items: [
+      {
+        title: "Appointments",
+        href: "/admin/dashboard/appointments-management",
+        icon: "Calendar",
+        roles: ["ADMIN"],
+      },
+      {
         title: "Schedules",
-        href: "/admins/dashboard/schedules-management",
+        href: "/admin/dashboard/schedules-management",
         icon: "Clock",
         roles: ["ADMIN"],
       },
       {
         title: "Specialities",
-        href: "/admins/dashboard/specialities-management",
-        icon: "Clock",
-        roles: ["ADMIN"],
-      },
-      {
-        title: "Appointments",
-        href: "/admins/dashboard/appointments-management",
-        icon: "CalendarCheck",
+        href: "/admin/dashboard/specialities-management",
+        icon: "Hospital",
         roles: ["ADMIN"],
       },
     ],
@@ -77,7 +88,7 @@ export const adminNavItems: NavSection[] = [
 
 export const doctorNavItems: NavSection[] = [
   {
-    title: "Appointments",
+    title: "Patient Management",
     items: [
       {
         title: "My Appointments",
@@ -100,15 +111,32 @@ export const patientNavItems: NavSection[] = [
     title: "Appointments",
     items: [
       {
-        title: "Book Appointment",
-        href: "/dashboard/book-appointment",
-        icon: "CalendarPlus",
+        title: "My Appointments",
+        href: "/dashboard/my-appointments",
+        icon: "Calendar",
         roles: ["PATIENT"],
       },
       {
+        title: "Book Appointment",
+        href: "/consultation",
+        icon: "ClipboardList",
+        roles: ["PATIENT"],
+      },
+    ],
+  },
+  {
+    title: "Medical Records",
+    items: [
+      {
         title: "My Prescriptions",
-        href: "/dashboard/my-prescription",
-        icon: "CalendarCheck",
+        href: "/dashboard/my-prescriptions",
+        icon: "FileText",
+        roles: ["PATIENT"],
+      },
+      {
+        title: "Health Records",
+        href: "/dashboard/health-records",
+        icon: "Activity",
         roles: ["PATIENT"],
       },
     ],
