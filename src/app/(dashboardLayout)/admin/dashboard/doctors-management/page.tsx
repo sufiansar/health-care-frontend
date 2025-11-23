@@ -19,19 +19,20 @@ const AdminDoctorsManagementPage = async ({
   const searchParamsObj = await searchParams;
   const queryString = queryStringFormatter(searchParamsObj); // {searchTerm: "John", speciality: "Cardiology" => "?searchTerm=John&speciality=Cardiology"}
   const specialitiesResult = await getSpecialities();
+  console.log(specialitiesResult);
   const doctorsResult = await getDoctors(queryString);
-  console.log(doctorsResult);
-  // const totalPages = Math.ceil(
-  //   doctorsResult.meta.total / doctorsResult.meta.limit
-  // );
+  // console.log(doctorsResult);
+  const totalPages = Math.ceil(
+    doctorsResult?.data?.meta?.total / doctorsResult?.data?.meta?.limit
+  );
   return (
     <div className="space-y-6">
-      <DoctorsManagementHeader specialities={specialitiesResult.data} />
+      <DoctorsManagementHeader specialities={specialitiesResult?.data || []} />
       <div className="flex space-x-2">
         <SearchFilter paramName="searchTerm" placeholder="Search doctors..." />
         <SelectFilter
           paramName="speciality" // ?speciality="Cardiology"
-          options={specialitiesResult.data.map((speciality: ISpecialty) => ({
+          options={specialitiesResult?.data?.map((speciality: ISpecialty) => ({
             label: speciality.title,
             value: speciality.title,
           }))}
@@ -41,13 +42,13 @@ const AdminDoctorsManagementPage = async ({
       </div>
       <Suspense fallback={<TableSkeleton columns={10} rows={10} />}>
         <DoctorsTable
-          doctors={doctorsResult.data}
-          specialities={specialitiesResult.data}
+          doctors={doctorsResult?.data?.data}
+          specialities={specialitiesResult?.data || []}
         />
-        {/* <TablePagination
-          currentPage={doctorsResult.meta.page}
-          // totalPages={totalPages}
-        /> */}
+        <TablePagination
+          currentPage={doctorsResult?.data?.meta?.page}
+          totalPages={totalPages}
+        />
       </Suspense>
     </div>
   );

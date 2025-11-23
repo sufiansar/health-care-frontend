@@ -1,6 +1,6 @@
 "use server";
 
-import { serverFetchClient } from "@/lib/server-fatch";
+import { serverFetch } from "@/lib/serverFatch";
 import { zodValidator } from "@/lib/zodValidator";
 import { createSpecialityZodSchema } from "@/zod/specialities.validation";
 
@@ -25,9 +25,26 @@ export async function createSpeciality(_prevState: any, formData: FormData) {
       newFormData.append("file", formData.get("file") as Blob);
     }
 
-    const response = await serverFetchClient.post("/specialties", {
+    const response = await serverFetch.post("/specialties", {
       body: newFormData,
     });
+
+    if (response.status === 429) {
+      return {
+        success: false,
+        message: "Too many requests. Please try again later.",
+      };
+    }
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => null);
+      return (
+        err || {
+          success: false,
+          message: "Failed to create speciality",
+        }
+      );
+    }
 
     const result = await response.json();
 
@@ -47,7 +64,7 @@ export async function createSpeciality(_prevState: any, formData: FormData) {
 
 export async function getSpecialities() {
   try {
-    const response = await serverFetchClient.get("/specialties");
+    const response = await serverFetch.get("/specialties");
     const result = await response.json();
     return result;
   } catch (error: any) {
@@ -65,7 +82,7 @@ export async function getSpecialities() {
 
 export async function deleteSpeciality(id: string) {
   try {
-    const response = await serverFetchClient.delete(`/specialties/${id}`);
+    const response = await serverFetch.delete(`/specialties/${id}`);
     const result = await response.json();
     return result;
   } catch (error: any) {
