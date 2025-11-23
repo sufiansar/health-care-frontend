@@ -17,6 +17,7 @@ export const doctorsColumns: Column<IDoctor>[] = [
         photo={doctor.profilePhoto as string | undefined}
       />
     ),
+    sortKey: "name",
   },
   {
     header: "Specialties",
@@ -81,6 +82,7 @@ export const doctorsColumns: Column<IDoctor>[] = [
         <span className="text-sm font-medium">{doctor.averageRating!}</span>
       </div>
     ),
+    sortKey: "averageRating",
   },
   {
     header: "Gender",
@@ -95,5 +97,6 @@ export const doctorsColumns: Column<IDoctor>[] = [
   {
     header: "Joined",
     accessor: (doctor) => <DateCell date={doctor.createdAt} />,
+    sortKey: "createdAt",
   },
 ];
