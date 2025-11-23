@@ -1,33 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import z from "zod";
 import { loginUser } from "./loginUsers";
 import { zodValidator } from "@/lib/zodValidator";
-import { serverFetchClient } from "@/lib/server-fatch";
-
-const registerValidationZodSchema = z
-  .object({
-    name: z.string().min(1, { message: "Name is required" }),
-    address: z.string().optional(),
-    email: z.email({ message: "Valid email is required" }),
-    password: z
-      .string()
-      .min(6, {
-        error: "Password is required and must be at least 6 characters long",
-      })
-      .max(100, {
-        error: "Password must be at most 100 characters long",
-      }),
-    confirmPassword: z.string().min(6, {
-      error:
-        "Confirm Password is required and must be at least 6 characters long",
-    }),
-  })
-  .refine((data: any) => data.password === data.confirmPassword, {
-    error: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+import { serverFetch } from "@/lib/serverFatch";
+import { registerValidationZodSchema } from "@/zod/patient.validation";
 
 export const registerPatient = async (
   _currentState: any,
@@ -71,7 +48,7 @@ export const registerPatient = async (
       newFormData.append("file", formData.get("file") as Blob);
     }
 
-    const res = await serverFetchClient.post(`/auth/register-patient`, {
+    const res = await serverFetch.post(`/auth/register-patient`, {
       body: newFormData,
     });
 

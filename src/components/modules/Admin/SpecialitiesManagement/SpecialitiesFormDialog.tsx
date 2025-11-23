@@ -12,8 +12,9 @@ import { Input } from "@/components/ui/input";
 
 import { toast } from "sonner";
 import InputFieldError from "../../shared/InputFieldError";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react"; // make sure this is correct import
 import { createSpeciality } from "@/services/admin/speacialitysManagement";
+import { useEffect, useRef } from "react";
 
 interface ISpecialitiesFormDialogProps {
   open: boolean;
@@ -28,12 +29,19 @@ const SpecialitiesFormDialog = ({
 }: ISpecialitiesFormDialogProps) => {
   const [state, formAction, pending] = useActionState(createSpeciality, null);
 
+  // Use a ref to prevent multiple toasts on same state
+  const prevStateRef = useRef<typeof state | null>(null);
+
   useEffect(() => {
-    if (state && state?.success) {
+    if (!state || state === prevStateRef.current) return;
+
+    prevStateRef.current = state;
+
+    if (state.success) {
       toast.success(state.message);
       onSuccess();
       onClose();
-    } else if (state && !state.success) {
+    } else {
       toast.error(state.message);
     }
   }, [state, onSuccess, onClose]);
@@ -54,7 +62,6 @@ const SpecialitiesFormDialog = ({
 
           <Field>
             <FieldLabel htmlFor="file">Upload Icon</FieldLabel>
-
             <Input id="file" name="file" type="file" accept="image/*" />
             <InputFieldError field="file" state={state} />
           </Field>

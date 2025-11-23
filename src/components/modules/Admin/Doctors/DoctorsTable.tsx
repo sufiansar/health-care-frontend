@@ -1,24 +1,23 @@
 "use client";
 
+import { softDeleteDoctor } from "@/services/admin/doctorsManagement";
+import { IDoctor } from "@/types/doctors.interface";
+import { ISpecialty } from "@/types/specialty.interface";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import DoctorFormDialog from "./DoctorFormDialog";
-import { IDoctor } from "@/types/doctors.interface";
-import { ISpecialty } from "@/types/specialty.interface";
-import { softDeleteDoctor } from "@/services/admin/doctorsManagement";
 import ManagementTable from "../../shared/ManagementTable";
 import { doctorsColumns } from "./DoctorsColum";
+import DoctorFormDialog from "./DoctorFormDialog";
 import DoctorViewDetailDialog from "./DoctorViewDetails";
 import DeleteConfirmationDialog from "../../shared/DeleteConfirmationDialog";
 
 interface DoctorsTableProps {
-  doctors: any;
+  doctors: IDoctor[];
   specialities: ISpecialty[];
 }
 
 const DoctorsTable = ({ doctors, specialities }: DoctorsTableProps) => {
-  console.log(doctors.data);
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [deletingDoctor, setDeletingDoctor] = useState<IDoctor | null>(null);
@@ -63,7 +62,7 @@ const DoctorsTable = ({ doctors, specialities }: DoctorsTableProps) => {
   return (
     <>
       <ManagementTable
-        data={doctors.data}
+        data={doctors}
         columns={doctorsColumns}
         onView={handleView}
         onEdit={handleEdit}
