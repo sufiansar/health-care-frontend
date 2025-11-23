@@ -1,8 +1,6 @@
 import DoctorsManagementHeader from "@/components/modules/Admin/Doctors/DoctorManagementHeader";
+import DoctorFilters from "@/components/modules/Admin/Doctors/DoctorsFilters";
 import DoctorsTable from "@/components/modules/Admin/Doctors/DoctorsTable";
-import RefreshButton from "@/components/modules/shared/RefreshButton";
-import SearchFilter from "@/components/modules/shared/SearchFilter";
-import SelectFilter from "@/components/modules/shared/SelectFilter";
 import TablePagination from "@/components/modules/shared/TablePagination";
 import { TableSkeleton } from "@/components/modules/shared/TableSkeleton";
 import { queryStringFormatter } from "@/lib/formatters";
@@ -28,25 +26,14 @@ const AdminDoctorsManagementPage = async ({
   return (
     <div className="space-y-6">
       <DoctorsManagementHeader specialities={specialitiesResult?.data || []} />
-      <div className="flex space-x-2">
-        <SearchFilter paramName="searchTerm" placeholder="Search doctors..." />
-        <SelectFilter
-          paramName="speciality" // ?speciality="Cardiology"
-          options={specialitiesResult?.data?.map((speciality: ISpecialty) => ({
-            label: speciality.title,
-            value: speciality.title,
-          }))}
-          placeholder="Filter by speciality"
-        />
-        <RefreshButton />
-      </div>
+      <DoctorFilters specialties={specialitiesResult?.data || []} />
       <Suspense fallback={<TableSkeleton columns={10} rows={10} />}>
         <DoctorsTable
           doctors={doctorsResult?.data?.data}
           specialities={specialitiesResult?.data || []}
         />
         <TablePagination
-          currentPage={doctorsResult?.data?.meta?.page}
+          currentPage={doctorsResult?.data?.meta?.page || 1}
           totalPages={totalPages}
         />
       </Suspense>
