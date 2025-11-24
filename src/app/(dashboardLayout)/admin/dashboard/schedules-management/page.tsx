@@ -1,9 +1,42 @@
-const SchedulesManagementpage = () => {
+import SchedulesFilter from "@/components/modules/Admin/scheduleManagements/SchedulesFilter";
+import SchedulesManagementHeader from "@/components/modules/Admin/scheduleManagements/SchedulesManagementHeader";
+import SchedulesTable from "@/components/modules/Admin/scheduleManagements/SchedulesTable";
+import TablePagination from "@/components/modules/shared/TablePagination";
+import { TableSkeleton } from "@/components/modules/shared/TableSkeleton";
+import { queryStringFormatter } from "@/lib/formatters";
+import { getSchedules } from "@/services/admin/scheduleMenagement";
+import { Suspense } from "react";
+
+const AdminSchedulesManagementPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) => {
+  const searchParamsObj = await searchParams;
+
+  const queryString = queryStringFormatter(searchParamsObj);
+  const schedulesResult = await getSchedules(queryString);
+
+  const totalPages = Math.ceil(
+    (schedulesResult?.meta?.total || 1) / (schedulesResult?.meta?.limit || 1)
+  );
+
   return (
-    <div>
-      <h1>Welcome to the Schedules Management page Component!</h1>
+    <div className="space-y-6">
+      <SchedulesManagementHeader />
+
+      {/* Filters */}
+      <SchedulesFilter />
+
+      <Suspense fallback={<TableSkeleton columns={4} rows={10} />}>
+        <SchedulesTable schedules={schedulesResult?.data || []} />
+        <TablePagination
+          currentPage={schedulesResult?.meta?.page || 1}
+          totalPages={totalPages || 1}
+        />
+      </Suspense>
     </div>
   );
 };
 
-export default SchedulesManagementpage;
+export default AdminSchedulesManagementPage;
