@@ -103,6 +103,28 @@ export const updateAdmin = async (
   }
 };
 
+export const getAllAdmins = async (queryString?: string) => {
+  try {
+    const res = await serverFetch.get(
+      `/admin${queryString ? `?${queryString}` : ""}`
+    );
+    if (!res.ok) {
+      throw new Error("Failed to fetch admins");
+    }
+
+    const result = await res.json();
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      message: `${
+        process.env.NODE_ENV === "development"
+          ? (error as Error).message
+          : "Something went wrong"
+      }`,
+    };
+  }
+};
 export const getAdminById = async (id: string) => {
   try {
     const res = await serverFetch.get(`/admin/${id}`);
