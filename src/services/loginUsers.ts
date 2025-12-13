@@ -10,9 +10,10 @@ import { parse } from "cookie";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import z from "zod";
-import { setCookie } from "./tokenHandlers";
+
 import { zodValidator } from "@/lib/zodValidator";
 import { serverFetch } from "@/lib/serverFatch";
+import { setCookie } from "./tokenHandlers";
 
 const loginValidationZodSchema = z.object({
   email: z.email({
@@ -113,7 +114,18 @@ export const loginUser = async (
     if (!result.success) {
       throw new Error(result.message || "Login failed");
     }
+    if (redirectTo && result.data.needPasswordChange) {
+      const requestedPath = redirectTo.toString();
+      if (isValidRedirectForRole(requestedPath, userRole)) {
+        redirect(`/reset-password?redirect=${requestedPath}`);
+      } else {
+        redirect("/reset-password");
+      }
+    }
 
+    if (result.data.needPasswordChange) {
+      redirect("/reset-password");
+    }
     if (redirectTo) {
       const requestedPath = redirectTo.toString();
       if (isValidRedirectForRole(requestedPath, userRole)) {

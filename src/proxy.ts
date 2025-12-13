@@ -1,5 +1,4 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
@@ -9,12 +8,30 @@ import {
   UserRole,
 } from "./lib/auth-utils";
 
-// This function can be marked `async` if using `await` inside
-export async function proxy(request: NextRequest) {
-  const cookieStore = await cookies();
-  const pathname = request.nextUrl.pathname;
+import { getNewAccessToken } from "./services/auth/auth.service";
+import { deleteCookie, getCookie } from "./services/tokenHandlers";
+import { getUserInfo } from "./services/getUserInfo";
 
-  const accessToken = request.cookies.get("accessToken")?.value || null;
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const hasTokenRefreshedParam =
+    request.nextUrl.searchParams.has("tokenRefreshed");
+
+  if (hasTokenRefreshedParam) {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete("tokenRefreshed");
+    return NextResponse.redirect(url);
+  }
+
+  const tokenRefreshResult = await getNewAccessToken();
+
+  if (tokenRefreshResult?.tokenRefreshed) {
+    const url = request.nextUrl.clone();
+    url.searchParams.set("tokenRefreshed", "true");
+    return NextResponse.redirect(url);
+  }
+
+  const accessToken = (await getCookie("accessToken")) || null;
 
   let userRole: UserRole | null = null;
   if (accessToken) {
@@ -24,8 +41,8 @@ export async function proxy(request: NextRequest) {
     );
 
     if (typeof verifiedToken === "string") {
-      cookieStore.delete("accessToken");
-      cookieStore.delete("refreshToken");
+      await deleteCookie("accessToken");
+      await deleteCookie("refreshToken");
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
@@ -33,9 +50,6 @@ export async function proxy(request: NextRequest) {
   }
 
   const routerOwner = getRouteOwner(pathname);
-  //path = /doctor/appointments => "DOCTOR"
-  //path = /my-profile => "COMMON"
-  //path = /login => null
 
   const isAuth = isAuthRoute(pathname);
 
@@ -51,20 +65,38 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rule 1 & 2 for open public routes and auth routes
-
   if (!accessToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Rule 3 : User is trying to access common protected route
+  if (accessToken) {
+    const userInfo = await getUserInfo();
+    if (userInfo.needPasswordChange) {
+      if (pathname !== "/reset-password") {
+        const resetPasswordUrl = new URL("/reset-password", request.url);
+        resetPasswordUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(resetPasswordUrl);
+      }
+      return NextResponse.next();
+    }
+
+    if (
+      userInfo &&
+      !userInfo.needPasswordChange &&
+      pathname === "/reset-password"
+    ) {
+      return NextResponse.redirect(
+        new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
+      );
+    }
+  }
+
   if (routerOwner === "COMMON") {
     return NextResponse.next();
   }
 
-  // Rule 4 : User is trying to access role based protected route
   if (
     routerOwner === "ADMIN" ||
     routerOwner === "DOCTOR" ||
@@ -76,7 +108,6 @@ export async function proxy(request: NextRequest) {
       );
     }
   }
-  console.log(userRole);
 
   return NextResponse.next();
 }

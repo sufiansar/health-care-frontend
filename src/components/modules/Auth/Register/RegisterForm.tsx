@@ -9,9 +9,10 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { registerPatient } from "@/services/registerUsers";
+
 import { useActionState } from "react";
 import InputFieldError from "../../shared/InputFieldError";
+import { registerPatient } from "@/services/registerUsers";
 
 const RegisterForm = () => {
   const [state, formAction, isPending] = useActionState(registerPatient, null);

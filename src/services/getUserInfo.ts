@@ -1,30 +1,58 @@
+import { serverFetch } from "@/lib/serverFatch";
 import { UserInfo } from "@/types/user.Interface";
-import { getCookie } from "./tokenHandlers";
+
+import { JwtPayload } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
+import { getCookie } from "./tokenHandlers";
 
-export const getUserInfo = async (): Promise<UserInfo | null> => {
+export const getUserInfo = async (): Promise<UserInfo | any> => {
+  let userInfo: UserInfo | any;
   try {
-    const accessToken = await getCookie("accessToken");
-    if (!accessToken) {
-      return null;
+    const response = await serverFetch.get("/auth/my-profile", {
+      cache: "force-cache",
+      next: { tags: ["user-info"] },
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      const accessToken = await getCookie("accessToken");
+
+      if (!accessToken) {
+        throw new Error("No access token found");
+      }
+
+      const verifiedToken = jwt.verify(
+        accessToken,
+        process.env.ACCESSTOKEN_SECRET as string
+      ) as JwtPayload;
+
+      userInfo = {
+        name: verifiedToken.name || "Unknown User",
+        email: verifiedToken.email,
+        role: verifiedToken.role,
+      };
     }
 
-    const verifyToken = jwt.verify(
-      accessToken,
-      process.env.ACCESSTOKEN_SECRET as string
-    );
-    if (!verifyToken) {
-      return null;
-    }
-
-    const userInfo: UserInfo = {
-      email: (verifyToken as jwt.JwtPayload).email as string,
-      role: (verifyToken as jwt.JwtPayload).role,
-      avatar: (verifyToken as jwt.JwtPayload).avatar as string | undefined,
+    userInfo = {
+      name:
+        result?.data?.admin?.name ||
+        result?.data?.doctor?.name ||
+        result?.data?.patient?.name ||
+        result?.data?.name ||
+        "Unknown User",
+      ...result.data,
     };
 
+    // console.log(result.data.name, "user g info from service");
     return userInfo;
-  } catch (error) {
-    return null;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      id: "",
+      name: "Unknown User",
+      email: "",
+      role: "PATIENT",
+    };
   }
 };

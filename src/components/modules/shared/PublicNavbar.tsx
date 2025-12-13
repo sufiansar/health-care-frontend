@@ -15,11 +15,11 @@ import { getUserInfo } from "@/services/getUserInfo";
 
 const PublicNavbar = async () => {
   const navItems = [
-    { href: "#", label: "Consultation" },
-    { href: "#", label: "Health Plans" },
-    { href: "#", label: "Medicine" },
-    { href: "#", label: "Diagnostics" },
-    { href: "#", label: "NGOs" },
+    { href: "/consultation", label: "Consultation" },
+    { href: "/health-plans", label: "Health Plans" },
+    { href: "/medicine", label: "Medicine" },
+    { href: "/diagnostics", label: "Diagnostics" },
+    { href: "/ngos", label: "NGOs" },
   ];
 
   const userInfo = await getUserInfo();

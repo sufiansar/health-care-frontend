@@ -2,15 +2,15 @@ import { FieldDescription } from "@/components/ui/field";
 import { getInputFieldError, IInputErrorState } from "@/lib/getInputFieldError";
 
 interface InputFieldErrorProps {
-  field: string;
+  fieldName: string;
   state: IInputErrorState;
 }
 
-const InputFieldError = ({ field, state }: InputFieldErrorProps) => {
-  if (getInputFieldError(field, state)) {
+const InputFieldError = ({ fieldName, state }: InputFieldErrorProps) => {
+  if (getInputFieldError(fieldName, state)) {
     return (
       <FieldDescription className="text-red-600">
-        {getInputFieldError(field, state)}
+        {getInputFieldError(fieldName, state)}
       </FieldDescription>
     );
   }

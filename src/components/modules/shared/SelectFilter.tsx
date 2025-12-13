@@ -13,6 +13,7 @@ import { useTransition } from "react";
 interface SelectFilterProps {
   paramName: string;
   placeholder?: string;
+  defaultValue?: string;
   options: { label: string; value: string }[];
 }
 
@@ -20,6 +21,7 @@ const SelectFilter = ({
   paramName,
   placeholder,
   options,
+  defaultValue,
 }: SelectFilterProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -54,7 +54,9 @@ export function AppSidebar({ userInfo, navItems, ...props }: AppSidebarProps) {
       {userInfo && (
         <SidebarMenuItem className="mt-3 px-2">
           <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-primary">UnKnown</p>
+            <p className="font-medium text-primary">
+              {userInfo.name || "Unknown"}
+            </p>
             <p className="text-xs font-bold">{userInfo.email}</p>
             <p className="text-[12px] font-bold text-gray-500 mt-1">
               Role: {userInfo.role}
