@@ -2,20 +2,21 @@ import { serverFetch } from "@/lib/serverFatch";
 import { zodValidator } from "@/lib/zodValidator";
 import { createScheduleZodSchema } from "@/zod/schedule.validation";
 
-export const createSchedule = async (_prevState: any, formData: FormData) => {
-  const validatedPayload: any = {
+export async function createSchedule(_prevState: any, formData: FormData) {
+  const validationPayload = {
     startDate: formData.get("startDate") as string,
     endDate: formData.get("endDate") as string,
     startTime: formData.get("startTime") as string,
     endTime: formData.get("endTime") as string,
   };
 
-  const validation = zodValidator(validatedPayload, createScheduleZodSchema);
+  const validation = zodValidator(validationPayload, createScheduleZodSchema);
+
   if (!validation.success && validation.errors) {
     return {
-      success: validation.success,
+      success: false,
       message: "Validation failed",
-      formData: validatedPayload,
+      formData: validationPayload,
       errors: validation.errors,
     };
   }
@@ -24,43 +25,31 @@ export const createSchedule = async (_prevState: any, formData: FormData) => {
     return {
       success: false,
       message: "Validation failed",
-      formData: validatedPayload,
+      formData: validationPayload,
     };
   }
 
   try {
     const response = await serverFetch.post("/schedule/create-schedule", {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validation.data),
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      return (
-        err || {
-          success: false,
-          message: "Failed to create schedule",
-        }
-      );
-    }
-
     const result = await response.json();
-
     return result;
   } catch (error: any) {
-    console.log(error);
+    console.error("Create schedule error:", error);
     return {
       success: false,
-      message: `${
+      message:
         process.env.NODE_ENV === "development"
           ? error.message
-          : "Something went wrong"
-      }`,
+          : "Failed to create schedule",
+      formData: validationPayload,
     };
   }
-};
+}
 
 export const getSchedules = async (queryString?: string) => {
   try {

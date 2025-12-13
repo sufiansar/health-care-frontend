@@ -1,8 +1,18 @@
 import { UserRole } from "@/lib/auth-utils";
+import { IAdmin } from "./admin.interface";
+import { IPatient } from "./patient.interface";
+import { IDoctor } from "./doctors.interface";
 
-export type UserInfo = {
-  name?: string;
+export interface UserInfo {
+  id: string;
+  name: string;
   email: string;
   role: UserRole;
-  avatar?: string;
-};
+  needPasswordChange: boolean;
+  status: "ACTIVE" | "BLOCKED" | "DELETED";
+  admin?: IAdmin;
+  patient?: IPatient;
+  doctor?: IDoctor;
+  createdAt: string;
+  updatedAt: string;
+}

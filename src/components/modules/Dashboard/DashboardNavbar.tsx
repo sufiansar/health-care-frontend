@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/modules/Dashboard/site-header";
 import { getUserInfo } from "@/services/getUserInfo";
+
 import { UserInfo } from "@/types/user.Interface";
 
 const DashboardNavbar = async () => {

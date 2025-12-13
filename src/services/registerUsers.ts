@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { loginUser } from "./loginUsers";
 import { zodValidator } from "@/lib/zodValidator";
 import { serverFetch } from "@/lib/serverFatch";
-import { registerValidationZodSchema } from "@/zod/patient.validation";
+import { createPatientZodSchema } from "@/zod/patient.validation";
+import { loginUser } from "./loginUsers";
+// import { registerValidationZodSchema } from "@/zod/patient.validation";
 
 export const registerPatient = async (
   _currentState: any,
@@ -21,15 +22,14 @@ export const registerPatient = async (
     };
 
     if (
-      zodValidator(validationData, registerValidationZodSchema).success ===
-      false
+      zodValidator(validationData, createPatientZodSchema).success === false
     ) {
-      return zodValidator(validationData, registerValidationZodSchema);
+      return zodValidator(validationData, createPatientZodSchema);
     }
 
     const validatedData: any = zodValidator(
       validationData,
-      registerValidationZodSchema
+      createPatientZodSchema
     ).data;
 
     const registerData = {
