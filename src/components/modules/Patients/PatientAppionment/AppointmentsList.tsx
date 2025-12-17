@@ -51,8 +51,8 @@ const AppointmentsList = ({ appointments }: AppointmentsListProps) => {
 
     const config = statusConfig[status];
     return (
-      <Badge variant={config.variant} className={config.className}>
-        {config.label}
+      <Badge variant={config?.variant!} className={config?.className!}>
+        {config?.label!}
       </Badge>
     );
   };

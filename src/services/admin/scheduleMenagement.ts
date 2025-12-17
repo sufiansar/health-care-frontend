@@ -1,6 +1,7 @@
 import { serverFetch } from "@/lib/serverFatch";
 import { zodValidator } from "@/lib/zodValidator";
 import { createScheduleZodSchema } from "@/zod/schedule.validation";
+import { revalidateTag } from "next/cache";
 
 export async function createSchedule(_prevState: any, formData: FormData) {
   const validationPayload = {
@@ -53,8 +54,21 @@ export async function createSchedule(_prevState: any, formData: FormData) {
 
 export const getSchedules = async (queryString?: string) => {
   try {
+    const searchParams = new URLSearchParams(queryString);
+    const page = searchParams.get("page") || "1";
+    const searchTerm = searchParams.get("searchTerm") || "all";
     const response = await serverFetch.get(
-      `/schedule/get-schedules${queryString ? `?${queryString}` : ""}`
+      `/schedule${queryString ? `?${queryString}` : ""}`,
+      {
+        next: {
+          tags: [
+            "schedules-list",
+            `schedules-page-${page}`,
+            `schedules-search-${searchTerm}`,
+          ],
+          revalidate: 120,
+        },
+      }
     );
     if (!response.ok) {
       const err = await response.json().catch(() => null);
@@ -66,6 +80,10 @@ export const getSchedules = async (queryString?: string) => {
       );
     }
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("schedules-list", { expire: 0 });
+      revalidateTag("schedules-page-1", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     console.log(error);
@@ -81,7 +99,13 @@ export const getSchedules = async (queryString?: string) => {
 };
 export const getScheduleById = async (id: string) => {
   try {
-    const response = await serverFetch.get(`/schedule/${id}`);
+    const response = await serverFetch.get(`/schedule/${id}`, {
+      next: {
+        tags: [`schedule-${id}`, "schedules-list"],
+        // Reduced to 180s for faster schedule detail updates
+        revalidate: 180,
+      },
+    });
     if (!response.ok) {
       const err = await response.json().catch(() => null);
       return (
@@ -121,6 +145,10 @@ export const deleteScheduleById = async (id: string) => {
     }
 
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("schedules-list", { expire: 0 });
+      revalidateTag(`schedule-${id}`, { expire: 0 });
+    }
 
     return result;
   } catch (error: any) {

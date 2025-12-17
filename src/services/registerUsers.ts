@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { zodValidator } from "@/lib/zodValidator";
 import { serverFetch } from "@/lib/serverFatch";
 import { createPatientZodSchema } from "@/zod/patient.validation";
 import { loginUser } from "./loginUsers";
-// import { registerValidationZodSchema } from "@/zod/patient.validation";
 
 export const registerPatient = async (
   _currentState: any,
@@ -22,14 +20,15 @@ export const registerPatient = async (
     };
 
     if (
-      zodValidator(validationData, createPatientZodSchema).success === false
+      zodValidator(validationData, createPatientZodSchema as any).success ===
+      false
     ) {
-      return zodValidator(validationData, createPatientZodSchema);
+      return zodValidator(validationData, createPatientZodSchema as any);
     }
 
     const validatedData: any = zodValidator(
       validationData,
-      createPatientZodSchema
+      createPatientZodSchema as any
     ).data;
 
     const registerData = {
@@ -48,7 +47,7 @@ export const registerPatient = async (
       newFormData.append("file", formData.get("file") as Blob);
     }
 
-    const res = await serverFetch.post(`/auth/register-patient`, {
+    const res = await serverFetch.post(`/user/patient-create`, {
       body: newFormData,
     });
 

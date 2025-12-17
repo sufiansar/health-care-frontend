@@ -15,7 +15,6 @@ import {
   createDoctorSchedule,
   getAvailableSchedules,
 } from "@/services/doctor/doctorSchedule";
-
 import { ISchedule } from "@/types/schedule.interface";
 import { format } from "date-fns";
 import { Calendar } from "lucide-react";
@@ -39,10 +38,11 @@ export default function BookScheduleDialog({
   const [availableSchedules, setAvailableSchedules] = useState<ISchedule[]>(
     initialAvailableSchedules
   );
-
   const [selectedSchedules, setSelectedSchedules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingSchedules, setLoadingSchedules] = useState(false);
+
+  console.log(availableSchedules);
   const router = useRouter();
 
   useEffect(() => {
@@ -57,10 +57,9 @@ export default function BookScheduleDialog({
     try {
       setLoadingSchedules(true);
       const response = await getAvailableSchedules();
-      //   console.log("response:", response);
       setAvailableSchedules(response?.data || []);
     } catch (error) {
-      console.error("Error loading schedules:", error);
+      console.error(error);
       toast.error("Failed to load available schedules");
     } finally {
       setLoadingSchedules(false);
@@ -83,54 +82,38 @@ export default function BookScheduleDialog({
 
     try {
       setIsLoading(true);
+
       const result = await createDoctorSchedule(selectedSchedules);
-      console.log(result);
-      if (!result.success) {
-        toast.error(result.message || "Failed to book schedules");
+
+      if (!result?.success) {
+        toast.error(result?.message || "Booking failed");
         return;
       }
-      console.log(result);
+
       toast.success(
         `Successfully booked ${selectedSchedules.length} schedule${
           selectedSchedules.length > 1 ? "s" : ""
         }`
       );
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.refresh();
-      }
+
+      onSuccess ? onSuccess() : router.refresh();
       onClose();
     } catch (error) {
-      console.error("Error booking schedules:", error);
+      console.error(error);
       toast.error("Failed to book schedules");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const groupSchedulesByDate = () => {
-    const grouped: Record<string, ISchedule[]> = {};
-
-    if (availableSchedules.length > 0) {
-      availableSchedules.forEach((schedule) => {
-        const date = format(new Date(schedule.startDateTime), "yyyy-MM-dd");
-        if (!grouped[date]) {
-          grouped[date] = [];
-        }
-        grouped[date].push(schedule);
-      });
-    }
-
-    return Object.entries(grouped).sort(
-      ([dateA], [dateB]) =>
-        new Date(dateA).getTime() - new Date(dateB).getTime()
-    );
-  };
-
-  const groupedSchedules = groupSchedulesByDate();
-
-  console.log({ availableSchedules, groupedSchedules });
+  const groupedSchedules = Object.entries(
+    availableSchedules.reduce<Record<string, ISchedule[]>>((acc, schedule) => {
+      const date = format(new Date(schedule.startDateTime), "yyyy-MM-dd");
+      acc[date] = acc[date] || [];
+      acc[date].push(schedule);
+      return acc;
+    }, {})
+  ).sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime());
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -138,16 +121,16 @@ export default function BookScheduleDialog({
         <DialogHeader>
           <DialogTitle>Book Schedules</DialogTitle>
           <DialogDescription>
-            Select time slots from available schedules to add to your calendar
+            Select time slots from available schedules
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
           {loadingSchedules ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Loading schedules...</p>
-            </div>
-          ) : availableSchedules?.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              Loading schedules...
+            </p>
+          ) : availableSchedules.length === 0 ? (
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <p className="text-muted-foreground">
@@ -156,27 +139,28 @@ export default function BookScheduleDialog({
             </div>
           ) : (
             <div className="space-y-6">
-              {groupedSchedules?.map(([date, daySchedules]) => (
+              {groupedSchedules.map(([date, schedules]) => (
                 <div key={date}>
                   <h3 className="font-medium mb-3">
                     {format(new Date(date), "EEEE, MMMM d, yyyy")}
                   </h3>
+
                   <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {daySchedules?.map((schedule) => (
+                    {schedules.map((schedule) => (
                       <div
                         key={schedule.id}
-                        className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                        onClick={() => handleToggleSchedule(schedule?.id)}
+                        className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent"
                       >
                         <Checkbox
                           id={schedule.id}
-                          checked={selectedSchedules?.includes(schedule?.id)}
+                          checked={selectedSchedules.includes(schedule.id)}
                           onCheckedChange={() =>
-                            handleToggleSchedule(schedule?.id)
+                            handleToggleSchedule(schedule.id)
                           }
                         />
+
                         <Label
-                          htmlFor={schedule?.id}
+                          htmlFor={schedule.id}
                           className="flex-1 cursor-pointer"
                         >
                           {format(new Date(schedule.startDateTime), "h:mm a")} -{" "}
@@ -192,18 +176,18 @@ export default function BookScheduleDialog({
         </div>
 
         <DialogFooter>
-          <div className="flex items-center justify-between w-full">
+          <div className="flex justify-between w-full items-center">
             <p className="text-sm text-muted-foreground">
-              {selectedSchedules?.length} schedule
-              {selectedSchedules?.length !== 1 ? "s" : ""} selected
+              {selectedSchedules.length} selected
             </p>
+
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose} disabled={isLoading}>
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={selectedSchedules?.length === 0 || isLoading}
+                disabled={isLoading || selectedSchedules.length === 0}
               >
                 {isLoading ? "Booking..." : "Book Schedules"}
               </Button>

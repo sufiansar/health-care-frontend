@@ -26,9 +26,12 @@ const ScheduleFormDialog = ({
 }: IScheduleFormDialogProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, isPending] = useActionState(createSchedule, null);
+  const prevStateRef = useRef(state);
 
   // Handle success/error from server
   useEffect(() => {
+    if (state === prevStateRef.current) return;
+    prevStateRef.current = state;
     if (state?.success) {
       toast.success(state.message || "Schedule created successfully");
       if (formRef.current) {
@@ -68,7 +71,7 @@ const ScheduleFormDialog = ({
                 type="date"
                 defaultValue={state?.formData?.startDate || ""}
               />
-              <InputFieldError field="startDate" state={state} />
+              <InputFieldError fieldName="startDate" state={state} />
             </Field>
 
             {/* End Date */}
@@ -80,7 +83,7 @@ const ScheduleFormDialog = ({
                 type="date"
                 defaultValue={state?.formData?.endDate || ""}
               />
-              <InputFieldError field="endDate" state={state} />
+              <InputFieldError fieldName="endDate" state={state} />
             </Field>
 
             {/* Start Time */}
@@ -96,7 +99,7 @@ const ScheduleFormDialog = ({
               <p className="text-xs text-gray-500 mt-1">
                 Example: 09:00 (24-hour format)
               </p>
-              <InputFieldError field="startTime" state={state} />
+              <InputFieldError fieldName="startTime" state={state} />
             </Field>
 
             {/* End Time */}
@@ -113,12 +116,12 @@ const ScheduleFormDialog = ({
                 Example: 17:00 (24-hour format). Schedules will be created in
                 30-minute intervals.
               </p>
-              <InputFieldError field="endTime" state={state} />
+              <InputFieldError fieldName="endTime" state={state} />
             </Field>
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-2 px-6 py-4 border-t bg-foreground50">
+          <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
             <Button
               type="button"
               variant="outline"

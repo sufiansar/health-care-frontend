@@ -91,6 +91,11 @@ export async function deleteSpeciality(id: string) {
   try {
     const response = await serverFetch.delete(`/specialties/${id}`);
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("specialities-list", { expire: 0 });
+      revalidateTag(`specialty-${id}`, { expire: 0 });
+      revalidateTag("doctors-list", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     console.log(error);

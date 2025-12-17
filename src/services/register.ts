@@ -41,7 +41,6 @@ export const registerPatient = async (formData: FormData) => {
       };
     }
 
-    // Prepare the data for backend
     const registerData = {
       password: patientInfo.password,
       patient: {
@@ -51,7 +50,6 @@ export const registerPatient = async (formData: FormData) => {
       },
     };
 
-    // Send API request
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/user/create-patient`,
       {

@@ -2,6 +2,7 @@
 
 import { serverFetch } from "@/lib/serverFatch";
 import { IAppointmentFormData } from "@/types/appionment.interface";
+import { revalidateTag } from "next/cache";
 
 export async function createAppointment(data: IAppointmentFormData) {
   try {
@@ -13,6 +14,13 @@ export async function createAppointment(data: IAppointmentFormData) {
     });
 
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("my-appointments", { expire: 0 });
+      revalidateTag("appointments-list", { expire: 0 });
+      revalidateTag("patient-dashboard-meta", { expire: 0 });
+      revalidateTag("admin-dashboard-meta", { expire: 0 });
+      revalidateTag("doctor-dashboard-meta", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     console.error("Error creating appointment:", error);
@@ -29,7 +37,7 @@ export async function createAppointment(data: IAppointmentFormData) {
 export async function getMyAppointments(queryString?: string) {
   try {
     const response = await serverFetch.get(
-      `/appointment/my-appointment${
+      `/appointment/my-appointments${
         queryString ? `?${queryString}` : "?sortBy=createdAt&sortOrder=desc"
       }`
     );
@@ -51,7 +59,7 @@ export async function getMyAppointments(queryString?: string) {
 
 export async function getAppointmentById(appointmentId: string) {
   try {
-    const response = await serverFetch.get("/appointment/my-appointment");
+    const response = await serverFetch.get("/appointment/my-appointments");
     const result = await response.json();
 
     if (result.success && result.data) {
@@ -117,6 +125,38 @@ export async function changeAppointmentStatus(
         process.env.NODE_ENV === "development"
           ? error.message
           : "Failed to change appointment status",
+    };
+  }
+}
+
+export async function createAppointmentWithPayLater(
+  data: IAppointmentFormData
+) {
+  try {
+    const response = await serverFetch.post("/appointment/pay-later", {
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      revalidateTag("my-appointments", { expire: 0 });
+      revalidateTag("appointments-list", { expire: 0 });
+      revalidateTag("patient-dashboard-meta", { expire: 0 });
+      revalidateTag("admin-dashboard-meta", { expire: 0 });
+      revalidateTag("doctor-dashboard-meta", { expire: 0 });
+    }
+    return result;
+  } catch (error: any) {
+    console.error("Error creating appointment with pay later:", error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Failed to book appointment",
     };
   }
 }

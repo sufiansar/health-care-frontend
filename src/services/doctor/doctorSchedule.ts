@@ -2,6 +2,7 @@
 
 import { serverFetch } from "@/lib/serverFatch";
 import { getNewAccessToken } from "../auth/auth.service";
+import { revalidateTag } from "next/cache";
 
 export async function getDoctorOwnSchedules(queryString?: string) {
   try {
@@ -9,7 +10,13 @@ export async function getDoctorOwnSchedules(queryString?: string) {
     //   `/doctor-schedule/my-schedules${queryString ? `?${queryString}` : ""}`
     // );
     const response = await serverFetch.get(
-      `/doctor-schedule/${queryString ? `?${queryString}` : ""}`
+      `/doctor-schedule/${queryString ? `?${queryString}` : ""}`,
+      {
+        next: {
+          tags: ["my-schedules", "doctor-schedules-list"],
+          revalidate: 180, // 3 minutes
+        },
+      }
     );
 
     const result = await response.json();
@@ -54,29 +61,34 @@ export async function getAvailableSchedules() {
     };
   }
 }
-export async function createDoctorSchedule(schedulesIds: string[]) {
+export async function createDoctorSchedule(scheduleIds: string[]) {
   try {
     const response = await serverFetch.post(
       `/doctor-schedule/create-doctor-schedule`,
-
       {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ schedulesIds }),
+        body: JSON.stringify({ scheduleIds }),
       }
     );
+
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("my-schedules", { expire: 0 });
+      revalidateTag("doctor-schedules-list", { expire: 0 });
+      revalidateTag("schedules-list", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     console.log(error);
     return {
       success: false,
-      message: `${
+      message:
         process.env.NODE_ENV === "development"
           ? error.message
-          : "Something went wrong"
-      }`,
+          : "Something went wrong",
     };
   }
 }
@@ -91,6 +103,11 @@ export async function deleteDoctorOwnSchedule(scheduleId: string) {
       }
     );
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("my-schedules", { expire: 0 });
+      revalidateTag("doctor-schedules-list", { expire: 0 });
+      revalidateTag("schedules-list", { expire: 0 });
+    }
 
     return {
       success: result.success,

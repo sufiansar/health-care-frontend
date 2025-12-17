@@ -33,9 +33,12 @@ const PatientFormDialog = ({
     updatePatientById.bind(null, patient?.id as string),
     null
   );
+  const prevStateRef = useRef(state);
 
   // Handle success/error from server
   useEffect(() => {
+    if (state === prevStateRef.current) return;
+    prevStateRef.current = state;
     if (state?.success) {
       toast.success(state.message || "Operation successful");
       if (formRef.current) {
@@ -75,7 +78,7 @@ const PatientFormDialog = ({
                 placeholder="John Doe"
                 defaultValue={state?.formData?.name || patient?.name || ""}
               />
-              <InputFieldError field="name" state={state} />
+              <InputFieldError fieldName="name" state={state} />
             </Field>
 
             <Field>
@@ -88,7 +91,7 @@ const PatientFormDialog = ({
                 defaultValue={state?.formData?.email || patient?.email || ""}
                 disabled={isPending}
               />
-              <InputFieldError field="email" state={state} />
+              <InputFieldError fieldName="email" state={state} />
             </Field>
 
             <Field>
@@ -101,7 +104,7 @@ const PatientFormDialog = ({
                   state?.formData?.contactNumber || patient?.contactNumber || ""
                 }
               />
-              <InputFieldError field="contactNumber" state={state} />
+              <InputFieldError fieldName="contactNumber" state={state} />
             </Field>
 
             <Field>
@@ -114,7 +117,7 @@ const PatientFormDialog = ({
                   state?.formData?.address || patient?.address || ""
                 }
               />
-              <InputFieldError field="address" state={state} />
+              <InputFieldError fieldName="address" state={state} />
             </Field>
           </div>
 

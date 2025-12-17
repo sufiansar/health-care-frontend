@@ -14,6 +14,7 @@ import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import InputFieldError from "../../shared/InputFieldError";
 import { loginUser } from "@/services/loginUsers";
+import Link from "next/link";
 
 const LoginForm = ({ redirect }: { redirect?: string }) => {
   const [state, formAction, isPending] = useActionState(loginUser, null);
@@ -73,17 +74,17 @@ const LoginForm = ({ redirect }: { redirect?: string }) => {
 
             <FieldDescription className="px-6 text-center">
               Don&apos;t have an account?{" "}
-              <a href="/register" className="text-blue-600 hover:underline">
+              <Link href="/register" className="text-blue-600 hover:underline">
                 Sign up
-              </a>
+              </Link>
             </FieldDescription>
             <FieldDescription className="px-6 text-center">
-              <a
-                href="/forget-password"
+              <Link
+                href="/forgot-password"
                 className="text-blue-600 hover:underline"
               >
                 Forgot password?
-              </a>
+              </Link>
             </FieldDescription>
           </Field>
         </FieldGroup>

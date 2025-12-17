@@ -9,7 +9,6 @@ import { getSpecialities } from "@/services/admin/speacialitysManagement";
 
 import { Suspense } from "react";
 
-// ISR: Revalidate every 10 minutes for doctor listings
 export const revalidate = 600;
 
 const ConsultationPage = async ({
@@ -27,6 +26,8 @@ const ConsultationPage = async ({
   ]);
 
   const doctors = doctorsResponse?.data || [];
+
+  console.log(doctors);
 
   const specialties = specialtiesResponse?.data || [];
 

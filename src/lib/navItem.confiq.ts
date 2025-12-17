@@ -102,6 +102,12 @@ export const doctorNavItems: NavSection[] = [
         icon: "Clock",
         roles: ["DOCTOR"],
       },
+      {
+        title: "Prescriptions",
+        href: "/doctor/dashboard/prescriptions",
+        icon: "FileText",
+        roles: ["DOCTOR"],
+      },
     ],
   },
 ];

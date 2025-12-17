@@ -1,11 +1,25 @@
 import { serverFetch } from "@/lib/serverFatch";
 import { zodValidator } from "@/lib/zodValidator";
 import { updatePatientZodSchema } from "@/zod/patient.validation";
+import { revalidateTag } from "next/cache";
 
 export async function getPatients(queryString?: string) {
   try {
+    const searchParams = new URLSearchParams(queryString);
+    const page = searchParams.get("page") || "1";
+    const searchTerm = searchParams.get("searchTerm") || "all";
     const response = await serverFetch.get(
-      `/patient${queryString ? `?${queryString}` : ""}`
+      `/patient${queryString ? `?${queryString}` : ""}`,
+      {
+        next: {
+          tags: [
+            "patients-list",
+            `patients-page-${page}`,
+            `patients-search-${searchTerm}`,
+          ],
+          revalidate: 180,
+        },
+      }
     );
     const result = await response.json();
     return result;
@@ -24,7 +38,12 @@ export async function getPatients(queryString?: string) {
 
 export const patientGetById = async (id: string) => {
   try {
-    const response = await serverFetch.get(`/patient/${id}`);
+    const response = await serverFetch.get(`/patient/${id}`, {
+      next: {
+        tags: [`patient-${id}`, "patients-list"],
+        revalidate: 180,
+      },
+    });
     const result = await response.json();
     return result;
   } catch (error: any) {
@@ -43,6 +62,10 @@ export const deletePatientById = async (id: string) => {
   try {
     const response = await serverFetch.delete(`/patient/${id}`);
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("patients-list", { expire: 0 });
+      revalidateTag(`patient-${id}`, { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     console.log(error);
@@ -97,6 +120,12 @@ export const updatePatientById = async (
     }
 
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("patients-list", { expire: 0 });
+      revalidateTag(`patient-${id}`, { expire: 0 });
+      revalidateTag("patient-dashboard-meta", { expire: 0 });
+      revalidateTag("admin-dashboard-meta", { expire: 0 });
+    }
 
     return result;
   } catch (error: any) {

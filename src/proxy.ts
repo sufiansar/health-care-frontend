@@ -11,6 +11,7 @@ import {
 import { getNewAccessToken } from "./services/auth/auth.service";
 import { deleteCookie, getCookie } from "./services/tokenHandlers";
 import { getUserInfo } from "./services/getUserInfo";
+import { verifyResetPasswordToken } from "./lib/jwtHandler";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -58,6 +59,58 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(
       new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
     );
+  }
+
+  if (pathname === "/reset-password") {
+    const email = request.nextUrl.searchParams.get("email");
+    const token = request.nextUrl.searchParams.get("token");
+
+    // Case 1: User has needPasswordChange (newly created admin/doctor)
+    if (accessToken) {
+      const userInfo = await getUserInfo();
+      if (userInfo.needPasswordChange) {
+        return NextResponse.next();
+      }
+
+      // User doesn't need password change and no valid token, redirect to dashboard
+      return NextResponse.redirect(
+        new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
+      );
+    }
+
+    // Case 2: Coming from email reset link (has email and token)
+    if (email && token) {
+      try {
+        // Verify the token
+        const verifiedToken = await verifyResetPasswordToken(token);
+
+        if (!verifiedToken.success) {
+          return NextResponse.redirect(
+            new URL("/forgot-password?error=expired-link", request.url)
+          );
+        }
+
+        // Verify email matches token
+        if (verifiedToken.success && verifiedToken.payload!.email !== email) {
+          return NextResponse.redirect(
+            new URL("/forgot-password?error=invalid-link", request.url)
+          );
+        }
+
+        // Token and email are valid, allow access without authentication
+        return NextResponse.next();
+      } catch {
+        // Token is invalid or expired
+        return NextResponse.redirect(
+          new URL("/forgot-password?error=expired-link", request.url)
+        );
+      }
+    }
+
+    // No access token and no valid reset token, redirect to login
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Rule 2 : User is trying to access open public route

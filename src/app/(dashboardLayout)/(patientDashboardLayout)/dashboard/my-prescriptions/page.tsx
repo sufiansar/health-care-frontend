@@ -1,3 +1,4 @@
+import PatientPrescriptionsList from "@/components/modules/Patients/PatientPrescription/PatientPrescriptionList";
 import { getMyPrescriptions } from "@/services/patient/prescription.service";
 import { IPrescription } from "@/types/prescription.interface";
 
@@ -14,7 +15,7 @@ export default async function MyPrescriptionsPage() {
         </p>
       </div>
 
-      {/* <PatientPrescriptionsList prescriptions={prescriptions} /> */}
+      <PatientPrescriptionsList prescriptions={prescriptions} />
     </div>
   );
 }
