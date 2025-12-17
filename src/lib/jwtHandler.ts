@@ -21,3 +21,23 @@ export const verifyAccessToken = async (token: string) => {
     };
   }
 };
+
+export const verifyResetPasswordToken = async (token: string) => {
+  try {
+    const verifiedToken = jwt.verify(
+      token,
+      process.env.RESET_PASSWORD_JWT_SECRET!
+    ) as jwt.JwtPayload;
+
+    return {
+      success: true,
+      message: "Token is valid",
+      payload: verifiedToken,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.message || "Invalid token",
+    };
+  }
+};

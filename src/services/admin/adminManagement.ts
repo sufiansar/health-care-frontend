@@ -5,6 +5,7 @@ import {
   CreateAdminPayloadSchema,
   UpdateAdminPayloadSchema,
 } from "@/zod/admin.validation";
+import { revalidateTag } from "next/cache";
 
 export const createAdmin = async (_prevState: any, formData: FormData) => {
   try {
@@ -45,6 +46,11 @@ export const createAdmin = async (_prevState: any, formData: FormData) => {
       credentials: "include",
     });
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("admins-list", { expire: 0 });
+      revalidateTag("admins-page-1", { expire: 0 });
+      revalidateTag("admin-dashboard-meta", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     return {
@@ -57,6 +63,39 @@ export const createAdmin = async (_prevState: any, formData: FormData) => {
     };
   }
 };
+
+export async function getAdmins(queryString?: string) {
+  try {
+    const searchParams = new URLSearchParams(queryString);
+    const page = searchParams.get("page") || "1";
+    const searchTerm = searchParams.get("searchTerm") || "all";
+    const response = await serverFetch.get(
+      `/admin${queryString ? `?${queryString}` : ""}`,
+      {
+        next: {
+          tags: [
+            "admins-list",
+            `admins-page-${page}`,
+            `admins-search-${searchTerm}`,
+          ],
+          revalidate: 180,
+        },
+      }
+    );
+    const result = await response.json();
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message: `${
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong"
+      }`,
+    };
+  }
+}
 
 export const updateAdmin = async (
   id: string,
@@ -90,6 +129,11 @@ export const updateAdmin = async (
       credentials: "include",
     });
     const result = await response.json();
+    if (result.success) {
+      revalidateTag("admins-list", { expire: 0 });
+      revalidateTag("admins-page-1", { expire: 0 });
+      revalidateTag("admin-dashboard-meta", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     return {
@@ -105,8 +149,21 @@ export const updateAdmin = async (
 
 export const getAllAdmins = async (queryString?: string) => {
   try {
+    const searchParams = new URLSearchParams(queryString);
+    const page = searchParams.get("page") || "1";
+    const searchTerm = searchParams.get("searchTerm") || "all";
     const res = await serverFetch.get(
-      `/admin${queryString ? `?${queryString}` : ""}`
+      `/admin${queryString ? `?${queryString}` : ""}`,
+      {
+        next: {
+          tags: [
+            "admins-list",
+            `admins-page-${page}`,
+            `admins-search-${searchTerm}`,
+          ],
+          revalidate: 180,
+        },
+      }
     );
     if (!res.ok) {
       throw new Error("Failed to fetch admins");
@@ -127,7 +184,12 @@ export const getAllAdmins = async (queryString?: string) => {
 };
 export const getAdminById = async (id: string) => {
   try {
-    const res = await serverFetch.get(`/admin/${id}`);
+    const res = await serverFetch.get(`/admin/${id}`, {
+      next: {
+        tags: [`admin-${id}`, "admins-list"],
+        revalidate: 180,
+      },
+    });
     const result = await res.json();
     return result;
   } catch (error: any) {
@@ -146,6 +208,11 @@ export const deleteAdmin = async (id: string) => {
   try {
     const res = await serverFetch.delete(`/admin/${id}`);
     const result = await res.json();
+    if (result.success) {
+      revalidateTag("admins-list", { expire: 0 });
+      revalidateTag("admins-page-1", { expire: 0 });
+      revalidateTag("admin-dashboard-meta", { expire: 0 });
+    }
     return result;
   } catch (error: any) {
     return {

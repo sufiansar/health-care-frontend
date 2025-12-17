@@ -14,22 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSpecialtySelection } from "@/hooks/specialtyHooks/useSpecialtySelection";
 
-import {
-  startTransition,
-  useActionState,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import Image from "next/image";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import InputFieldError from "../../shared/InputFieldError";
+import SpecialtyMultiSelect from "./SpecialtyMultiSelect";
 import { IDoctor } from "@/types/doctors.interface";
 import { ISpecialty } from "@/types/specialty.interface";
 import { createDoctor, updateDoctor } from "@/services/admin/doctorsManagement";
-import { useSpecialtySelection } from "@/hooks/specialtyHooks/useSpecialtySelection";
-import SpecialtyMultiSelect from "./SpecialtyMultiSelect";
-import Image from "next/image";
+import InputFieldError from "../../shared/InputFieldError";
 
 interface IDoctorFormDialogProps {
   open: boolean;
@@ -65,7 +59,8 @@ const DoctorFormDialog = ({
     isEdit ? updateDoctor.bind(null, doctor.id!) : createDoctor,
     null
   );
-  const [submitting, setSubmitting] = useState(false);
+
+  const prevStateRef = useRef(state);
 
   const handleClose = () => {
     if (fileInputRef.current) {
@@ -78,8 +73,6 @@ const DoctorFormDialog = ({
     onClose(); // Close dialog
   };
 
-  console.log({ state });
-
   const specialtySelection = useSpecialtySelection({
     doctor,
     isEdit,
@@ -90,22 +83,20 @@ const DoctorFormDialog = ({
     return specialities?.find((s) => s.id === id)?.title || "Unknown";
   };
 
-  const prevStateRef = useRef<typeof state | null>(null);
-
   useEffect(() => {
-    if (!state || state === prevStateRef.current) return;
+    if (state === prevStateRef.current) return;
     prevStateRef.current = state;
 
-    if (state.success) {
+    if (state?.success) {
       toast.success(state.message);
-      formRef.current?.reset();
-      setSelectedFile(null);
+      if (formRef.current) {
+        formRef.current.reset();
+      }
       onSuccess();
       onClose();
-    } else {
+    } else if (state && !state.success && state.message) {
       toast.error(state.message);
 
-      // restore file if failed
       if (selectedFile && fileInputRef.current) {
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(selectedFile);
@@ -113,10 +104,6 @@ const DoctorFormDialog = ({
       }
     }
   }, [state, onSuccess, onClose, selectedFile]);
-
-  useEffect(() => {
-    if (state) setSubmitting(false);
-  }, [state]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -127,17 +114,8 @@ const DoctorFormDialog = ({
 
         <form
           ref={formRef}
+          action={formAction}
           className="flex flex-col flex-1 min-h-0"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!pending && !submitting) setSubmitting(true);
-
-            const formData = new FormData(e.currentTarget);
-
-            startTransition(() => {
-              formAction(formData);
-            });
-          }}
         >
           <div className="flex-1 overflow-y-auto px-6 space-y-4 pb-4">
             <Field>
@@ -150,7 +128,7 @@ const DoctorFormDialog = ({
                   state?.formData?.name || (isEdit ? doctor?.name : "")
                 }
               />
-              <InputFieldError state={state} field="name" />
+              <InputFieldError state={state} fieldName="name" />
             </Field>
 
             <Field>
@@ -166,7 +144,7 @@ const DoctorFormDialog = ({
                 }
                 disabled={isEdit}
               />
-              <InputFieldError state={state} field="email" />
+              <InputFieldError state={state} fieldName="email" />
             </Field>
 
             {!isEdit && (
@@ -180,7 +158,7 @@ const DoctorFormDialog = ({
                     defaultValue={state?.formData?.password || ""}
                     placeholder="Enter password"
                   />
-                  <InputFieldError state={state} field="password" />
+                  <InputFieldError state={state} fieldName="password" />
                 </Field>
 
                 <Field>
@@ -194,7 +172,7 @@ const DoctorFormDialog = ({
                     defaultValue={state?.formData?.confirmPassword || ""}
                     placeholder="Confirm password"
                   />
-                  <InputFieldError state={state} field="confirmPassword" />
+                  <InputFieldError state={state} fieldName="confirmPassword" />
                 </Field>
               </>
             )}
@@ -216,7 +194,7 @@ const DoctorFormDialog = ({
               getSpecialtyTitle={getSpecialtyTitle}
               getNewSpecialties={specialtySelection.getNewSpecialties}
             />
-            <InputFieldError field="specialties" state={state} />
+            <InputFieldError fieldName="specialties" state={state} />
 
             <Field>
               <FieldLabel htmlFor="contactNumber">Contact Number</FieldLabel>
@@ -230,7 +208,7 @@ const DoctorFormDialog = ({
                   (isEdit ? doctor?.contactNumber : "")
                 }
               />
-              <InputFieldError state={state} field="contactNumber" />
+              <InputFieldError state={state} fieldName="contactNumber" />
             </Field>
 
             <Field>
@@ -244,7 +222,7 @@ const DoctorFormDialog = ({
                   state?.formData?.address || (isEdit ? doctor?.address : "")
                 }
               />
-              <InputFieldError state={state} field="address" />
+              <InputFieldError state={state} fieldName="address" />
             </Field>
 
             <Field>
@@ -261,7 +239,7 @@ const DoctorFormDialog = ({
                   (isEdit ? doctor?.registrationNumber : "")
                 }
               />
-              <InputFieldError state={state} field="registrationNumber" />
+              <InputFieldError state={state} fieldName="registrationNumber" />
             </Field>
 
             <Field>
@@ -280,7 +258,7 @@ const DoctorFormDialog = ({
                 }
                 min="0"
               />
-              <InputFieldError state={state} field="experience" />
+              <InputFieldError state={state} fieldName="experience" />
             </Field>
 
             <Field>
@@ -307,7 +285,7 @@ const DoctorFormDialog = ({
                   <SelectItem value="FEMALE">Female</SelectItem>
                 </SelectContent>
               </Select>
-              <InputFieldError state={state} field="gender" />
+              <InputFieldError state={state} fieldName="gender" />
             </Field>
 
             <Field>
@@ -320,7 +298,7 @@ const DoctorFormDialog = ({
                 defaultValue={isEdit ? doctor?.appointmentFee : undefined}
                 min="0"
               />
-              <InputFieldError state={state} field="appointmentFee" />
+              <InputFieldError state={state} fieldName="appointmentFee" />
             </Field>
 
             <Field>
@@ -335,7 +313,7 @@ const DoctorFormDialog = ({
                   (isEdit ? doctor?.qualification : "")
                 }
               />
-              <InputFieldError state={state} field="qualification" />
+              <InputFieldError state={state} fieldName="qualification" />
             </Field>
 
             <Field>
@@ -352,7 +330,7 @@ const DoctorFormDialog = ({
                   (isEdit ? doctor?.currentWorkingPlace : "")
                 }
               />
-              <InputFieldError state={state} field="currentWorkingPlace" />
+              <InputFieldError state={state} fieldName="currentWorkingPlace" />
             </Field>
 
             <Field>
@@ -367,7 +345,7 @@ const DoctorFormDialog = ({
                   (isEdit ? doctor?.designation : "")
                 }
               />
-              <InputFieldError state={state} field="designation" />
+              <InputFieldError state={state} fieldName="designation" />
             </Field>
 
             {!isEdit && (
@@ -398,22 +376,22 @@ const DoctorFormDialog = ({
                 <p className="text-xs text-gray-500 mt-1">
                   Upload a profile photo for the doctor
                 </p>
-                <InputFieldError state={state} field="profilePhoto" />
+                <InputFieldError state={state} fieldName="profilePhoto" />
               </Field>
             )}
           </div>
 
-          <div className="flex justify-end gap-2 px-6 py-4 border-t bg-f0reground/50">
+          <div className="flex justify-end gap-2 px-6 py-4 border-t bg-gray-50">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={pending || submitting}
+              disabled={pending}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={pending || submitting}>
-              {pending || submitting
+            <Button type="submit" disabled={pending}>
+              {pending
                 ? "Saving..."
                 : isEdit
                 ? "Update Doctor"

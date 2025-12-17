@@ -38,6 +38,7 @@ const AdminFormDialog = ({
     null
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const prevStateRef = useRef(state);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,6 +47,8 @@ const AdminFormDialog = ({
 
   // Handle success/error from server
   useEffect(() => {
+    if (state === prevStateRef.current) return;
+    prevStateRef.current = state;
     if (state?.success) {
       toast.success(state.message || "Operation successful");
       if (formRef.current) {
@@ -93,7 +96,7 @@ const AdminFormDialog = ({
                 placeholder="John Doe"
                 defaultValue={state?.formData?.name || admin?.name || ""}
               />
-              <InputFieldError field="name" state={state} />
+              <InputFieldError fieldName="name" state={state} />
             </Field>
 
             <Field>
@@ -106,7 +109,7 @@ const AdminFormDialog = ({
                 defaultValue={state?.formData?.email || admin?.email || ""}
                 disabled={isEdit}
               />
-              <InputFieldError field="email" state={state} />
+              <InputFieldError fieldName="email" state={state} />
             </Field>
 
             <Field>
@@ -119,7 +122,7 @@ const AdminFormDialog = ({
                   state?.formData?.contactNumber || admin?.contactNumber || ""
                 }
               />
-              <InputFieldError field="contactNumber" state={state} />
+              <InputFieldError fieldName="contactNumber" state={state} />
             </Field>
 
             {/* Password Field (Create Mode Only) */}
@@ -133,7 +136,7 @@ const AdminFormDialog = ({
                   placeholder="Enter password"
                   defaultValue={state?.formData?.password || ""}
                 />
-                <InputFieldError field="password" state={state} />
+                <InputFieldError fieldName="password" state={state} />
               </Field>
             )}
 
@@ -164,7 +167,7 @@ const AdminFormDialog = ({
                 <p className="text-xs text-gray-500 mt-1">
                   Upload a profile photo for the admin
                 </p>
-                <InputFieldError field="profilePhoto" state={state} />
+                <InputFieldError fieldName="profilePhoto" state={state} />
               </Field>
             )}
           </div>
